@@ -40,7 +40,6 @@ morphologyFilename = "morphologies/cell1.asc"
 #biophysicalModelFilename = "L5PCbiophys4.hoc"
 #biophysicalModelFilename = "L5PCbiophys5.hoc"
 biophysicalModelFilename = "L5PCbiophys5b.hoc"
-#biophysicalModelFilename = "L5PCbiophys6.hoc"
 
 #biophysicalModelTemplateFilename = "L5PCtemplate.hoc"
 biophysicalModelTemplateFilename = "L5PCtemplate_2.hoc"
@@ -109,21 +108,13 @@ def randSecWeight(obj,medSeg,part,num):
     return randSecList
 
 def randSecDist(obj,dist,part,num):
-#    allLen = []
-#    for i in range(len(obj)):
-#        allLen.append(obj[i].L)
     randSecList = [0 for i in range(num)]
     h.distance(sec=L5PC.soma[0]) # define distance measure from medSeg
     # draw from cumulative length a seg for syn
     maxDist = 1300#max(h.distance(obj[i](1)) for i in range(len(obj)))
-#    x = dist+(np.random.rand(num)-0.5)*maxDist/part
     j=0
 #    farbug=0
     while j<num:
-        # redraw boundary crossers
-#        if x[j]<0 or x[j]>maxDist:
-#            x[j] = dist+(np.random.rand()-0.5)*maxDist/part
-#            continue
         # find sec
         i=0
         while i<len(obj)*10:
@@ -132,13 +123,7 @@ def randSecDist(obj,dist,part,num):
                 randSecList[j]=x
                 break
             i+=1
-        # check that sec is sufficiently close to medseg
-#        if h.distance(obj[randSecList[j]](1))>sum(allLen)/part and farbug<5:#obj[medSeg].L+obj[randSecList[j]].L:#
-#            x[j] = np.sum(allLen[:medSeg])+(np.random.rand()-0.5)*np.sum(allLen)/part
-#            farbug+=1
-#            continue
         j+=1
-#        farbug=0
     return randSecList
 
 #%% Predefining variables given to function runSim: cell,ApiBasInt,treeT,numBas,numApi,partApi,medSeg,numExp
@@ -146,22 +131,19 @@ cell = L5PC
 ApiBasInt = [0]#np.linspace(-30,30,num=61)#0 #15 # 20 # 40
 treeT = 0 #9.05 #4.53 #2.26 #
 numApi = 10#; ind=0#15 #80 #100 #5 # INH
-numA = [0,10,20]#,30]#,40,50,80,100]
+numA = [0,10,20]#,30]#,40,50,80,100] #Exc Api
 numBas = 100 #90 #35 #
 partApi = 20 #
 dist = np.linspace(100,1300,num=7)
 medSegment = [0,4,36,60,61,62,63,26] #26 #20 #14 #4 #0 #63 #
 medSeg= 61 #medSegment[-2]
-numExp = len(ApiBasInt)#+2
-#ind=0
+numExp = len(ApiBasInt)
 
 cell.soma[0].gSKv3_1bar_SKv3_1 = 0.338*1.5#2#
 #%% TTX
 for i in range(len(cell.axon)):
     cell.axon[i].gNap_Et2bar_Nap_Et2 = 0
 #    cell.axon[i].gNaTa_tbar_NaTa_t = 0
-    
-
 
 #%% Copied from Burst.py
 
@@ -172,30 +154,20 @@ cell.soma[0].gSKv3_1bar_SKv3_1 = 0.338*1.5#2#
 simulationTime    = 400
 silentTimeAtStart = 100
 delayTime = 200
-#    ApicalBasalInterval = 605
+#    ApicalBasalInterval = 0 #60
 #    treeTime = 20
 silentTimeAtEnd   = 100
 
 origNumSamplesPerMS = 20
 totalSimDuration = simulationTime + silentTimeAtStart + silentTimeAtEnd
     
-#listOfSomaTraces = [] #redundant
-#listOfDendTraces = []
-#listOfNexusTraces = []
-#spikes = []
-#numSpikes = 0
-#numSpikesPerExp = [0]*numExp
-
 #for experiment in range(numExp):
 
 startTime = time.time()
 
 listOfBackgroundBasalSecInds = np.random.randint(0,len(cell.dend),int(numBas/2*(1+np.random.normal(0,0.1))))#int(numBas))#
 listOfBackgroundApicalSecInds = np.random.randint(0,len(cell.apic),int(numA[-1]/2*(1+np.random.normal(0,0.1))))#int(numApi))#
-#listOfRandBasalSectionInds  = np.random.randint(0,len(cell.dend),int(numBas))
-#listOfRandApicalSectionInds = medSeg + np.random.randint(0,math.ceil(len(cell.apic)/float(partApi)),int(numApi))
 listOfRandBasalSectionInds  = randSecWeight(cell.dend,44,1,int(numBas))#np.random.randint(0,len(cell.dend),int(numBas))
-#    distance = math.ceil(len(cell.apic)/float(partApi)/2)
 listOfRandApicalSectionInds = randSecWeight(cell.apic,62,partApi,numA[-1])#medSeg + np.random.randint(-distance,distance,int(numApi))
 listOfRandInhSectionInds = [int(medSeg)]*int(numApi)#randSecDist(cell.apic,medSeg,20,numApi)# + np.random.randint(0,len(cell.apic)/partApi,numApi)
 #for clust in range(int(partApi)):
@@ -227,8 +199,6 @@ for k, section in enumerate(listOfBgApicalSec):
     eventTime1.append(silentTimeAtStart + np.random.uniform(0,simulationTime))#100*np.random.normal(0,1))
 for k, section in enumerate(listOfBgBasalSec):
     eventTime2.append(silentTimeAtStart + np.random.uniform(0,simulationTime))#100*np.random.normal(0,1)) #simulationTime/2*np.random.rand(1)[0]
-#for k, section in enumerate(listOfInhSections):
-#    eventTime5.append(silentTimeAtStart + np.random.uniform(0,simulationTime)) #simulationTime/2*np.random.rand(1)[0]
 for k, section in enumerate(listOfApicalSections):
     eventTime3.append(silentTimeAtStart + delayTime + treeT*np.random.normal(0,1)) #gauss(0.5,0.2)
 for k, section in enumerate(listOfBasalSections):
@@ -237,34 +207,10 @@ for k, section in enumerate(listOfInhSections):
     eventTime5.append(silentTimeAtStart + np.random.uniform(0,simulationTime)) #simulationTime/2*np.random.rand(1)[0]
     eventTime6.append(silentTimeAtStart + delayTime + treeT*np.random.normal(0,1)) #simulationTime/2*np.random.rand(1)[0]
 
-#listOfEvents = []
-#for k, section in enumerate(listOfBgApicalSec):
-#    listOfEvents.append(Add_NMDA_SingleSynapticEventToSegment(section(listOfRandBgApicalLocsInSec[k]), eventTime1[k], 1, 1))
-#for k, section in enumerate(listOfBgBasalSec):
-#    listOfEvents.append(Add_NMDA_SingleSynapticEventToSegment(section(listOfRandBgBasalLocsInSec[k]), eventTime2[k], 1, 1))
-#for k, section in enumerate(listOfInhSections):
-#    listOfEvents.append(Add_NMDA_SingleSynapticEventToSegment(section(listOfRandInhLocationsInSection[k]), eventTime5[k], 1, 0))
-#
-#for k, section in enumerate(listOfApicalSections):
-#    listOfEvents.append(Add_NMDA_SingleSynapticEventToSegment(section(listOfRandApicalLocationsInSection[k]), eventTime3[k], 1, 1))
-#
-#for k, section in enumerate(listOfBasalSections):
-#    listOfEvents.append(Add_NMDA_SingleSynapticEventToSegment(section(listOfRandBasalLocationsInSection[k]), eventTime4[k], 1, 1))
-#for k, section in enumerate(listOfInhSections):
-#    listOfEvents.append(Add_NMDA_SingleSynapticEventToSegment(section(listOfRandInhLocationsInSection[k]), eventTime6[k], 1, 0))
-
-#listOfEvents = []
-#for k, section in enumerate(listOfSections):
-#    eventTime = silentTimeAtStart + simulationTime*np.random.rand(1)[0]
-#    listOfEvents.append(Add_NMDA_SingleSynapticEventToSegment(section(listOfSegLocs[k]), eventTime, 2))
     
 #%% run the simulation
 listOfSomaTraces = []               # all these needed only out of for(exp) loop
 listOfDendTraces = [[]]*numA[-1]
-#listOfDend2Traces = []
-#listOfDend3Traces = []
-#listOfDend4Traces = []
-#listOfDend5Traces = []
 listOfNexusTraces = []
 spikes = []
 
@@ -345,16 +291,6 @@ for exp in range(numExp):
     for syn in range(numA[-1]):
         recDendVolt[syn] = h.Vector()
         recDendVolt[syn].record(cell.apic[60+syn/(numA[-1]/4)](float(syn%(numA[-1]/4))/(numA[-1]/4))._ref_cai)
-#    recDendVolt = h.Vector()
-#    recDendVolt.record(cell.apic[36](1)._ref_cai)
-#    recDend2Volt = h.Vector()
-#    recDend2Volt.record(cell.apic[60](0.5)._ref_cai)
-#    recDend3Volt = h.Vector()
-#    recDend3Volt.record(cell.apic[60](1)._ref_cai)
-#    recDend4Volt = h.Vector()
-#    recDend4Volt.record(cell.apic[61](0.5)._ref_cai)
-#    recDend5Volt = h.Vector()
-#    recDend5Volt.record(cell.apic[63](0.5)._ref_cai)
     recNexusVolt = h.Vector()
     recNexusVolt.record(cell.apic[36](1)._ref_v)
     
@@ -369,10 +305,6 @@ for exp in range(numExp):
     origDendVoltage = [0]*numA[-1]
     for syn in range(numA[-1]):
         origDendVoltage[syn] = np.array(recDendVolt[syn].to_python()) # ugly workaround to recVoltage.as_numpy()
-#    origDend2Voltage = np.array(recDend2Volt.to_python()) # ugly workaround to recVoltage.as_numpy()
-#    origDend3Voltage = np.array(recDend3Volt.to_python()) # ugly workaround to recVoltage.as_numpy()
-#    origDend4Voltage = np.array(recDend4Volt.to_python()) # ugly workaround to recVoltage.as_numpy()
-#    origDend5Voltage = np.array(recDend5Volt.to_python()) # ugly workaround to recVoltage.as_numpy()
     origNexusVoltage = np.array(recNexusVolt.to_python()) # ugly workaround to recVoltage.as_numpy()
         
     recordingTime = np.arange(0,totalSimDuration,1.0/origNumSamplesPerMS)
@@ -380,25 +312,17 @@ for exp in range(numExp):
     dendVoltage = [0]*numA[-1]
     for syn in range(numA[-1]):
         dendVoltage[syn]   = np.interp(recordingTime, origRecordingTime, origDendVoltage[syn])    
-#    dend2Voltage   = np.interp(recordingTime, origRecordingTime, origDend2Voltage)    
-#    dend3Voltage   = np.interp(recordingTime, origRecordingTime, origDend3Voltage)    
-#    dend4Voltage   = np.interp(recordingTime, origRecordingTime, origDend4Voltage)    
-#    dend5Voltage   = np.interp(recordingTime, origRecordingTime, origDend5Voltage)    
     nexusVoltage   = np.interp(recordingTime, origRecordingTime, origNexusVoltage)    
     
     listOfSomaTraces.append(somaVoltage)
     for syn in range(numA[-1]):
         listOfDendTraces[syn].append(dendVoltage[syn])
-#    listOfDend2Traces.append(dend2Voltage)
-#    listOfDend3Traces.append(dend3Voltage)
-#    listOfDend4Traces.append(dend4Voltage)
-#    listOfDend5Traces.append(dend5Voltage)
     listOfNexusTraces.append(nexusVoltage)
     
 #    origSpikes = []
 #    
 #    k = (silentTimeAtStart+delayTime-50)*origNumSamplesPerMS
-#    while k < totalSimDuration*origNumSamplesPerMS:
+#    while k < totalSimDuration*origNumSamplesPerMS:    # count spikes
 #        if somaVoltage[k]>-20:
 #            spikeTime = float(k)/origNumSamplesPerMS
 #            numTemp = numSpikesPerExp[exp]
@@ -447,8 +371,6 @@ plt.title('final synaptic weights')
 for j in range(len(th_p)):
 #    w = [1]*numA[-1]
     for syn in range(numA[-1]):
-    #    depDur[syn] = np.sum([(listOfDendTraces[syn][syn][i]<55e-5)*(listOfDendTraces[syn][syn][i]>35e-5) for i in range(12000)])
-    #    potDur[syn] = np.sum([listOfDendTraces[syn][syn][i]>55e-5 for i in range(12000)])
         depDur[j][syn] = np.sum([(listOfDendTraces[syn][syn][i]<th_p[j])*(listOfDendTraces[syn][syn][i]>th_d[j]) for i in range(12000)])
         potDur[j][syn] = np.sum([listOfDendTraces[syn][syn][i]>th_p[j] for i in range(12000)])
         w[j][syn] = w[j][syn] - depDur[j][syn]/float(1200) + potDur[j][syn]/float(400)
@@ -639,26 +561,25 @@ for somaVoltageTrace in listOfSomaTraces:
         
 #%% run simulation on some parameter pair, plot the space
 
-ApicalBasalInterval = np.linspace(-20,20,num=9) #ApicalBasalInterval = np.linspace(-30,40,num=36)
-totSyn = np.linspace(0,500,num=21)
-numBasal = 100 #np.linspace(0,400,num=17)
-numApical = 400-numBasal
-partApical = np.logspace(1,7,num=13,base=2)
+ApicalBasalInterval = 0 #np.linspace(-20,20,num=9) #ApicalBasalInterval = np.linspace(-30,40,num=36)
+#totSyn = np.linspace(0,500,num=21)
+numBasal = 0 #np.linspace(0,400,num=17)
+numApical = 0 #400-numBasal
+partApical = 10 #np.logspace(1,7,num=13,base=2)
 medSegment = 20 #np.linspace(0,100,num=21)
 treeTime = 20 #np.linspace(5,100,num=20)
 ampApi = np.linspace(0,5,num=11)
+numExperiments = 1
 
 amp = np.linspace(0,10,num=101)
-spks2 = [0 for i in range(len(amp))] #for j in range(len(ampApi))]
-frqs2 = [0 for i in range(len(amp))] #for j in range(len(ampApi))]
-trc = spks
-tme = trc
+spks = [0 for i in range(len(amp))] #for j in range(len(ampApi))]
+frqs = [0 for i in range(len(amp))] #for j in range(len(ampApi))]
+trc = [[] for i in range(len(amp))]
 
-i = 0
+#i = 0
 j = 0
 
 start = time.time()
-#numA = 150
 
 #for ApiBasInd in ApicalBasalInterval:
 #    print "Running for interval: %s [ms]" % (int(ApiBasInd))
@@ -668,7 +589,7 @@ for ampS in amp:
 #        numA = 0.75*totS
 #        print "Running for 1/", partA, "of apical tree"
     print "Running for ", ampS, "somatic amplitude"
-    spks2[j],frqs2[j] = runIClampSim(L5PC,0,treeTime,0,0,5,medSegment,ampS,1)
+    spks[j],frqs[j] = runIClampSim(L5PC,ApicalBasalInterval,treeTime,numBasal,numApical,partApical,medSegment,ampS,numExperiments)
     j = j+1
 #j = 0
 #i = i+1
@@ -677,14 +598,10 @@ print "Total running time was: ", (time.time()-start)/3600, "hours"
 
 #%% plot data in 3D
 
-#ApicalBasalInterval = ApicalBasalInterval001
-#numApical = numApical001
-#spks = spks001
 percent = 100/partApical
 
 fig = plt.figure()
 ax = fig.gca(projection='3d')
-#plt.title('Spikes as function of $\Delta$t and total synapse # - 3/4 apical synapses') 
 plt.title('Spikes as function of $\Delta$t and apical current amplitude') 
 #apical segment size (by denominator of entire tree)') # % (numExperiments, partOfApical, numApical, numBasal, treeTime, ApicalBasalInterval) )
 plt.xlabel('$\Delta$t [ms]'); plt.ylabel('apical current amplitude (nA)') #'Apical segment size (denom.)')
@@ -701,7 +618,6 @@ plt.show()
 
 #%% cut down spks
 
-#spksnew0 = [[0 for i in range(21)] for j in range(len(totalSyn))]
 spksmeancut = [[0 for i in range(len(ApicalBasalInterval))] for j in range(len(medSegment))]#partApical[:10]))]
 
 for i in range(len(ApicalBasalInterval)):#numApical[:-10])):#
@@ -758,8 +674,6 @@ for i in range(len(ApicalBasalInterval)):
 for i in range(len(spks2[0])):
     for j in range(len(spks2)):
         spks1[j][i] = spksmean1[j][i]
-#    for k in range(len(spksnew3)):
-#        spksnew4[k+len(spksnew2)][i] = spksnew3[k][i]
 
 #%% stitch intermingled tot_api
 spksmean = [[0 for x in range(len(spksmean0[0])+len(spksmean1[0]))] 
@@ -790,16 +704,6 @@ spksmean2 = [[0 for x in range(len(bas300api_dt0pt10rnd_spks0[0]))]
                     for y in range(len(bas300api_dt0pt10rnd_spks0))]
 for i in range(len(bas300api_dt0pt10rnd_spks0)):
     for j in range(len(bas300api_dt0pt10rnd_spks0[0])):
-#        spksmean[i][j] = float(1)/10*(inh_secqtrhidt_meds62_exc50dt0sd10num20_spks0[i][j] + 
-#                        inh_secqtrhidt_meds62_exc50dt0sd10num20_spks1[i][j] + 
-#                        inh_secqtrhidt_meds62_exc50dt0sd10num20_spks2[i][j] + 
-#                        inh_secqtrhidt_meds62_exc50dt0sd10num20_spks3[i][j] + 
-#                        inh_secqtrhidt_meds62_exc50dt0sd10num20_spks4[i][j] + 
-#                        inh_secqtrhidt_meds62_exc50dt0sd10num20_spks5[i][j] + 
-#                        inh_secqtrhidt_meds62_exc50dt0sd10num20_spks6[i][j] + 
-#                        inh_secqtrhidt_meds62_exc50dt0sd10num20_spks7[i][j] + 
-#                        inh_secqtrhidt_meds62_exc50dt0sd10num20_spks8[i][j] +
-#                        inh_secqtrhidt_meds62_exc50dt0sd10num20_spks9[i][j])
         frqsmean2[i][j] = float(1000)/10*(bas300api_dt0pt10rnd_frqs0[i][j] + 
                         bas300api_dt0pt10rnd_frqs1[i][j] + 
                         bas300api_dt0pt10rnd_frqs2[i][j] + 

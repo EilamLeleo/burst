@@ -1,42 +1,16 @@
 #!/usr/lib/python-exec/python2.7/python
 import os
 import sys
-#sys.path.append('C:\nrn\lib\python')
-#os.chdir('/ems/elsc-labs/segev-i/eilam.goldenberg/Documents/Active Cell Real Morphology/')
-
-#os.envimorron["PYTHONPATH"] = os.environ["PYTHONPATH"] + ';C:\Python27' + ';C:\nrn' + ';C:\nrn\lib\hoc\import3d' + ';C:\nrn\lib\python'
-#os.environ['NEURONHOME'] = 'C:\nrn'
-#os.environ['Path'] = 'C:\nrn;C:\nrn\bin'
 
 from neuron import h
 from neuron import gui
 
 #%%
 
-#import pandas as pd
-#import matplotlib.pyplot as plt
-#from mpl_toolkits.mplot3d import Axes3D
-#from matplotlib import cm
 import numpy as np
-#from random import shuffle
-#from random import randint
-#from random import gauss
 import time
 import math
 import cPickle as pickle
-#from vector import vector, plot_peaks
-#from libs import detect_peaks
-
-#%%
-
-sk = False
-
-if sk==True:
-    from sklearn import decomposition
-    from sklearn import cluster
-    from sklearn import linear_model
-    from sklearn import ensemble
-    from sklearn import cross_validation
 
 #%%
 
@@ -46,11 +20,9 @@ h.load_file("import3d.hoc")
 cvode = h.CVode()
 cvode.active(1)
 
-#morphologyFilename = "L23branco/rc19.hoc"
 morphologyFilename = "morphologies/cell1.asc"
 #morphologyFilename = "morphologies/cell2.asc"
 #morphologyFilename = "morphologies/cell3.asc"
-#morphologyFilename = "morphologies/V1.ASC"
 
 #biophysicalModelFilename = "L5PCbiophys1.hoc"
 #biophysicalModelFilename = "L5PCbiophys2.hoc"
@@ -58,20 +30,9 @@ morphologyFilename = "morphologies/cell1.asc"
 #biophysicalModelFilename = "L5PCbiophys4.hoc"
 #biophysicalModelFilename = "L5PCbiophys5.hoc"
 biophysicalModelFilename = "L5PCbiophys5b.hoc"
-#biophysicalModelFilename = "L23branco/init_biophys.hoc"
 
 #biophysicalModelTemplateFilename = "L5PCtemplate.hoc"
 biophysicalModelTemplateFilename = "L5PCtemplate_2.hoc"
-
-
-#%%
-
-L23 = False
-
-if L23==True:
-    h.load_file(morphologyFilename)
-    h.load_file(biophysicalModelFilename)
-
 
 #%%
 
@@ -80,7 +41,6 @@ h.load_file(biophysicalModelTemplateFilename)
 L5PC = h.L5PCtemplate(morphologyFilename)
 
 #%% set dendritic VDCC g=0
-#secs = h.allsec
 
 VDCC_g = 1
 
@@ -144,33 +104,12 @@ def randSecWeight(obj,medSeg,part,num):
 
 #%% add some random NMDA synapses and plot a somatic trace just to see all things are alive and kicking
 
-# simulationTime    = 400
-# silentTimeAtStart = 100
-# delayTime = 200
-ApicalBasalInterval = 60
-treeTime = 20
-# silentTimeAtEnd   = 100
-
-
-# origNumSamplesPerMS = 20
-# totalSimDuration = simulationTime + silentTimeAtStart + silentTimeAtEnd
-
-numBasal = 50
-numApical = 20
-partOfApical = 10
-medSegment = 0
-
-numExperiments = 5
-
 def runSim(cell,ApiBasInt,treeT,numBas,numApi,partApi,medSeg,numExp):
     
     simulationTime    = 400
     silentTimeAtStart = 100
     delayTime = 200
-#    ApicalBasalInterval = 60
-#    treeTime = 20
-    silentTimeAtEnd   = 100
-    
+    silentTimeAtEnd   = 100    
     
     origNumSamplesPerMS = 20
     totalSimDuration = simulationTime + silentTimeAtStart + silentTimeAtEnd
@@ -186,36 +125,25 @@ def runSim(cell,ApiBasInt,treeT,numBas,numApi,partApi,medSeg,numExp):
         startTime = time.time()
                 
         listOfRandBasalSectionInds  = randSecWeight(cell.dend,44,1,int(numBas))#np.random.randint(0,len(cell.dend),int(numBas)) 
-#        distance = math.ceil(len(cell.apic)/float(partApi)/2)
-#        listOfRandApicalSectionInds = randSecWeight(cell.apic,medSeg,partApi,int(numApi)) #medSeg + np.random.randint(-distance,distance,int(numApi)) 
         listOfRandApicalSectionInds = randSecWeight(cell.apic,np.random.randint(37,78),partApi,int(numApi)) 
-        # make anything over apical size be deduced by that value
-#        if numApi>0: 
-#            if max(listOfRandApicalSectionInds) > len(cell.apic)-1:
-#                deduce = max(listOfRandApicalSectionInds) - len(cell.apic)+1
-#                for x in range(numApi):
-#                    listOfRandApicalSectionInds[x] -= deduce
-#                listOfRandApicalSectionInds = [listOfRandApicalSectionInds[x]-max(listOfRandApicalSectionInds)+len(cell.apic) for x in range(numApi)]
-#            if listOfRandApicalSectionInds > len(cell.apic):
-#                listOfRandApicalSectionInds = listOfRandApicalSectionInds - len(cell.apic)
 #        listOfRandObliqueSectionI2nds = np.random.randint(0,len(cell.apic)/partApi,0)#int(40-numApi)) #obliques
         listOfBasalSections  = [cell.dend[x] for x in listOfRandBasalSectionInds]
         listOfApicalSections = [cell.apic[x] for x in listOfRandApicalSectionInds]
 #        listOfObliqueSections = [cell.apic[x] for x in listOfRandObliqueSectionInds]
-        #listOfApicalSections = []
         
 #        listOfSections = listOfApicalSections + listOfBasalSections
         
         listOfRandBasalLocationsInSection = np.random.rand(len(listOfRandBasalSectionInds))
         listOfRandApicalLocationsInSection = np.random.rand(len(listOfRandApicalSectionInds))
+        # limit synaptic distribution within segment
         k0=0 #35
         while k0<len(listOfRandApicalSectionInds):#listOfRandApicalLocationsInSection:
             if (1-listOfRandApicalLocationsInSection[k0])*listOfApicalSections[k0].L>7440/partApi:
                 listOfRandApicalLocationsInSection[k0]=np.random.rand()
             else:
-                k0+=1#        listOfRandObliqueLocationsInSection = np.random.rand(len(listOfRandObliqueSectionInds))
+                k0+=1
+#        listOfRandObliqueLocationsInSection = np.random.rand(len(listOfRandObliqueSectionInds))
 #        listOfSegLocs = list(listOfRandApicalLocationsInSection) + list(listOfRandBasalLocationsInSection)
-        #listOfSegLocs = list(listOfRandBasalLocationsInSection)
         
         listOfEvents = []
         for k, section in enumerate(listOfApicalSections):
@@ -239,12 +167,10 @@ def runSim(cell,ApiBasInt,treeT,numBas,numApi,partApi,medSeg,numExp):
 #            eventTime = silentTimeAtStart + delayTime + treeT*np.random.normal(1,0.2) #simulationTime/2*np.random.rand(1)[0]
 #            listOfEvents.append(Add_NMDA_SingleSynapticEventToSegment(section(listOfRandObliqueLocationsInSection[k]), eventTime, 2))
         
-        #listOfEvents = []
+        #listOfEvents = []  # for setting synaptic events with complete list of synapses (not divided to api/bas)
         #for k, section in enumerate(listOfSections):
-        #    eventTime = silentTimeAtS10tart + simulationTime*np.random.rand(1)[0]
+        #    eventTime = silentTimeAtStart + simulationTime*np.random.rand(1)[0]
         #    listOfEvents.append(Add_NMDA_SingleSynapticEventToSegment(section(listOfSegLocs[k]), eventTime, 2))
-        #eventTime = silentTimeAtStart #+ simulationTime/2 + simulationTime/2*np.random.rand(1)[0]
-        #listOfEvents.append(Add_NMDA_SingleSynapticEventToSegment(L5PC.dend[1](0.5), eventTime, 2))
         
         
         ##%% run the simulation
@@ -266,7 +192,7 @@ def runSim(cell,ApiBasInt,treeT,numBas,numApi,partApi,medSeg,numExp):
         somaVoltage   = np.interp(recordingTime, origRecordingTime, origSomaVoltage)    
         listOfSomaTraces.append(somaVoltage)
         
-        
+       
         origSpikes = []
         tempSpikes = 0
         
@@ -274,10 +200,6 @@ def runSim(cell,ApiBasInt,treeT,numBas,numApi,partApi,medSeg,numExp):
         while k < (totalSimDuration-silentTimeAtEnd)*origNumSamplesPerMS:
             if somaVoltage[k]>-10:
                 tempTime = float(k)/origNumSamplesPerMS
-#                if tempSpikes==1 and tempTime-origSpikes[-1]>20:
-#                    tempSpikes = 0
-#                    numSpikes -= 1
-#                    del origSpikes[-1]
                 if tempSpikes>0 and tempTime-origSpikes[-1]>20:
                     break
                 origSpikes.append(tempTime)
@@ -288,7 +210,6 @@ def runSim(cell,ApiBasInt,treeT,numBas,numApi,partApi,medSeg,numExp):
             else:
                 k = k+5 # was 1 before
         
-    #    spikes = []
         spikes.append(origSpikes)
         if tempSpikes>1: 
             freq[experiment] = tempSpikes/(origSpikes[-1]-origSpikes[-tempSpikes])
@@ -301,10 +222,6 @@ def runSim(cell,ApiBasInt,treeT,numBas,numApi,partApi,medSeg,numExp):
         #listOfEvents = []
         if (experiment+1)%10==0 or (time.time()-startTime)/60>5 or numExp<5: 
             print "Dt %s treeTime %s exp. # %s took %.3f minutes" % (ApiBasInt,treeT,experiment+1, (time.time()-startTime)/60)
-#        elif (time.time()-startTime)/60>5:
-#            print "Exp. %s took %.3f minutes" % (experiment+1, (time.time()-startTime)/60)
-#        elif numExp<5:
-#            print "Exp. %s took %.3f minutes" % (experiment+1, (time.time()-startTime)/60)
         
     print "Mean no. of spikes: %s" % (float(numSpikes)/numExp)
     return float(numSpikes)/numExp,np.mean(freq)#, listOfSomaTraces, recordingTime
@@ -327,21 +244,20 @@ np.random.seed(randomSeed)
 
 #ind = 1
 #a = np.linspace(-50,-25,num=6),np.linspace(-20,20,num=21),np.linspace(25,100,num=16)
-ApicalBasalInterval = np.linspace(-40,60,num=21)#51) #[x for xs in a for x in xs]
+ApicalBasalInterval = 0 #.linspace(-40,60,num=21)#51) #[x for xs in a for x in xs]
 numBasal = np.linspace(0,300,num=61)
 numApical = np.linspace(0,100,num=51)#50,num=21)#
-numOblique = 40-numApical
-totalSyn = [i for i in np.linspace(10,100,num=10)]+[i for i in np.linspace(150,500,num=8)]
+#numOblique = 30-numApical
+#totalSyn = [i for i in np.linspace(10,100,num=10)]+[i for i in np.linspace(150,500,num=8)]
 #[20,50,100,200,400,600,800]#[80,120,150,180]#np.linspace(0,200,num=5)#41)
-partApical = np.logspace(0,7,num=29,base=2)
+partApical = 10 #np.logspace(0,7,num=29,base=2)
 medSegment = 62 #np.linspace(0,80,num=9)
-treeTime = np.linspace(1,20,num=20)#0.1*np.logspace(3,10,num=15,base=2)
-#numA = numApical
+treeTime = 10 #np.linspace(1,20,num=20)#0.1*np.logspace(3,10,num=15,base=2)
+numExperiments = 10
 
-spks2 = [[0 for i in range(len(numBasal))] for j in range(len(numApical))] 
-frqs2 = [[0 for i in range(len(numBasal))] for j in range(len(numApical))]
-#trc = spks
-#tme = trc
+spks = [[0 for i in range(len(numBasal))] for j in range(len(numApical))] 
+frqs = [[0 for i in range(len(numBasal))] for j in range(len(numApical))]
+#trc = [[[] for i in range(len(numBasal))] for j in range(len(numApical))]
 
 i = 0
 j = 0
@@ -354,20 +270,15 @@ for numB in numBasal:
 #    print "Running for %s total synapses" % (int(totalS))
 #    for partApi in partApical:#treeT in treeTime:#
     for numA in numApical:#np.linspace(0,totalS,num=41):#
-#        numA = numApical
         print "Running for apical synapses: %s" % (int(numA))#part %.2f" % (partApi)#treeTime: %s [ms]" % (treeT) #
 #        numA = int(totalS*0.4)
-        spks2[j][i],frqs2[j][i] = runSim(L5PC,0,10,numB,numA,20,medSegment,10)
+        spks[j][i],frqs[j][i] = runSim(L5PC,ApicalBasalInterval,treeTime,numB,numA,partApical,medSegment,numExperiments)
         j = j+1
     j = 0
     i = i+1
     
-pickle.dump(spks2,open(saveDir+name+'_spks'+str(randomSeed)+".npy","wb"),protocol=2)
-pickle.dump(frqs2,open(saveDir+name+'_frqs'+str(randomSeed)+".npy","wb"),protocol=2)
+pickle.dump(spks,open(saveDir+name+'_spks'+str(randomSeed)+".npy","wb"),protocol=2)
+pickle.dump(frqs,open(saveDir+name+'_frqs'+str(randomSeed)+".npy","wb"),protocol=2)
 
 print "Saved as ", saveDir+name+'_spks'+str(randomSeed)+".npy"
 print "Total running time was: ", (time.time()-start)/3600, "hours"
-
-#saveDir = '/ems/elsc-labs/segev-i/eilam.goldenberg/Documents/concidence/'
-#pickle.dump(spks1,open(saveDir+'dt_treet_30tot_hires_spks',"wb"),protocol=2)
-#pickle.dump(frqs1,open(saveDir+'dt_treet_30tot_hires_frqs',"wb"),protocol=2)

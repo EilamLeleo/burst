@@ -1,37 +1,18 @@
 import os
 import sys
-#sys.path.append('C:\nrn\lib\python')
 os.chdir('/ems/elsc-labs/segev-i/eilam.goldenberg/Documents/Active Cell Real Morphology/')
-
-#os.environ["PYTHONPATH"] = os.environ["PYTHONPATH"] + ';C:\Python27' + ';C:\nrn' + ';C:\nrn\lib\hoc\import3d' + ';C:\nrn\lib\python'
-#os.environ['NEURONHOME'] = 'C:\nrn'
-#os.environ['Path'] = 'C:\nrn;C:\nrn\bin'
 
 from neuron import h
 from neuron import gui
 
 #%%
 
-#import pandas as pd
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import cm
 import numpy as np
-#from random import shuffle
-#from random import randint
-#from random import gauss
 import time
 import math
-#from vector import vector, plot_peaks
-#from libs import detect_peaks
-
-#%%
-
-from sklearn import decomposition
-from sklearn import cluster
-from sklearn import linear_model
-from sklearn import ensemble
-from sklearn import cross_validation
 
 #%%
 
@@ -44,7 +25,6 @@ cvode.active(0)
 morphologyFilename = "morphologies/cell1.asc"
 #morphologyFilename = "morphologies/cell2.asc"
 #morphologyFilename = "morphologies/cell3.asc"
-#morphologyFilename = "morphologies/V1.ASC"
 
 #biophysicalModelFilename = "L5PCbiophys1.hoc"
 #biophysicalModelFilename = "L5PCbiophys2.hoc"
@@ -64,10 +44,10 @@ h.load_file(biophysicalModelTemplateFilename)
 L5PC = h.L5PCtemplate(morphologyFilename)
 
 #%% set dendritic VDCC g=0
-#secs = h.allsec
-for sec in h.allsec():
-    if hasattr(sec, 'gCa_HVAbar_Ca_HVA'):
-        sec.gCa_HVAbar_Ca_HVA = 0
+##secs = h.allsec
+#for sec in h.allsec():
+#    if hasattr(sec, 'gCa_HVAbar_Ca_HVA'):
+#        sec.gCa_HVAbar_Ca_HVA = 0
     
 
 #%% inspect the created shape
@@ -136,33 +116,12 @@ def Add_GABA_SingleSynapticEventToSegment(segment, activationTime, synapseWeight
 
 #%% add some random NMDA synapses and plot a somatic trace just to see all things are alive and kicking
 
-# simulationTime    = 400
-# silentTimeAtStart = 100
-# delayTime = 200
-ApicalBasalInterval = 60
-treeTime = 20
-# silentTimeAtEnd   = 100
-
-
-# origNumSamplesPerMS = 20
-# totalSimDuration = simulationTime + silentTimeAtStart + silentTimeAtEnd
-
-numBasal = 50
-numApical = 20
-partOfApical = 10
-medSegment = 0
-
-numExperiments = 5
-
-def runSim(cell,ApiBasInt,treeT,numBas,numApi,partApi,medSeg,numExp):
+def runSim(cell,ApiBasInt,treeT,numBas,numApi,partApi,medSeg,numExp):   # NOTE THAT numApi HERE MODIFIES INH #
     
     simulationTime    = 400
     silentTimeAtStart = 100
     delayTime = 200
-#    ApicalBasalInterval = 60
-#    treeTime = 20
     silentTimeAtEnd   = 100
-#    numBasal
     origNumSamplesPerMS = 40 # was 20!!!
     totalSimDuration = simulationTime + silentTimeAtStart + silentTimeAtEnd
         
@@ -177,14 +136,13 @@ def runSim(cell,ApiBasInt,treeT,numBas,numApi,partApi,medSeg,numExp):
         
         
         listOfRandBasalSectionInds  = np.random.randint(0,len(cell.dend),int(numBas))
-        listOfRandApicalSectionInds = 60 + np.random.randint(0,len(cell.apic)/partApi,int(40))#numApi))
+        listOfRandApicalSectionInds = 60 + np.random.randint(0,len(cell.apic)/partApi,int(30))#numApi)) #   API EXC # FIXED AT 30
         listOfRandInhSectionInds = int(medSeg) + np.random.randint(0,len(cell.apic)/partApi,numApi) #int(numInh))
 #        listOfRandObliqueSectionInds = np.random.randint(0,len(cell.apic)/partApi,int(40-numApi)) #obliques
         listOfBasalSections  = [cell.dend[x] for x in listOfRandBasalSectionInds]
         listOfApicalSections = [cell.apic[x] for x in listOfRandApicalSectionInds]
         listOfInhSections = [cell.apic[x] for x in listOfRandInhSectionInds]
 #        listOfObliqueSections = [cell.apic[x] for x in listOfRandObliqueSectionInds]
-        #listOfApicalSections = []
         
 #        listOfSections = listOfApicalSections + listOfBasalSections
         
@@ -193,7 +151,6 @@ def runSim(cell,ApiBasInt,treeT,numBas,numApi,partApi,medSeg,numExp):
         listOfRandInhLocationsInSection = np.random.rand(len(listOfRandInhSectionInds))
 #        listOfRandObliqueLocationsInSection = np.random.rand(len(listOfRandObliqueSectionInds))
 #        listOfSegLocs = list(listOfRandApicalLocationsInSection) + list(listOfRandBasalLocationsInSection)
-        #listOfSegLocs = list(listOfRandBasalLocationsInSection)
         
         listOfEvents = []
         for k, section in enumerate(listOfApicalSections):
@@ -225,13 +182,6 @@ def runSim(cell,ApiBasInt,treeT,numBas,numApi,partApi,medSeg,numExp):
 #            eventTime = silentTimeAtStart + delayTime + treeT*np.random.normal(1,0.2) #simulationTime/2*np.random.rand(1)[0]
 #            listOfEvents.append(Add_NMDA_SingleSynapticEventToSegment(section(listOfRandObliqueLocationsInSection[k]), eventTime, 2))
         
-        #listOfEvents = []
-        #for k, section in enumerate(listOfSections):
-        #    eventTime = silentTimeAtS10tart + simulationTime*np.random.rand(1)[0]
-        #    listOfEvents.append(Add_NMDA_SingleSynapticEventToSegment(section(listOfSegLocs[k]), eventTime, 2))
-        1
-        #eventTime = silentTimeAtStart #+ simulationTime/2 + simulationTime/2*np.random.rand(1)[0]
-        #listOfEvents.append(Add_NMDA_SingleSynapticEventToSegment(L5PC.dend[1](0.5), eventTime, 2))
         
         ##%% run the simulation
         h.dt = 0.025
@@ -283,31 +233,25 @@ def runSim(cell,ApiBasInt,treeT,numBas,numApi,partApi,medSeg,numExp):
         #listOfEvents = []
         if (experiment+1)%5==0 or (time.time()-startTime)/60>5 or numExp<5: 
             print "medSeg %s dt %s exp. # %s took %.3f minutes" % (medSeg,ApiBasInt,experiment+1, (time.time()-startTime)/60)
-#        elif (time.time()-startTime)/60>5:
-#            print "Exp. %s took %.3f minutes" % (experiment+1, (time.time()-startTime)/60)
-#        elif numExp<5:
-#            print "Exp. %s took %.3f minutes" % (experiment+1, (time.time()-startTime)/60)
-        
+
     print "Mean no. of spikes: %s" % (float(numSpikes)/numExp)
     return float(numSpikes)/numExp, listOfSomaTraces, recordingTime
 
 #%% run simulation on some parameter pair, plot the space
 
 ApicalBasalInterval = 0 #np.linspace(-20,40,num=31) #36)
-numBasal = np.linspace(0,200,num=21) #33)
-numApical = 200-numBasal #np.linspace(20,40,num=21)
-numOblique = 40-numApical
-#numI = 50
+numBasal = 50 #60 #np.linspace(0,200,num=21) #33)
+numApical = 30 #40 #200-numBasal #np.linspace(20,40,num=21)
+numInh = 20 #100
+#numOblique = 40-numApical
 #totalSyn = np.linspace(0,500,num=21)
 partApical = 10 #np.logspace(0,7,num=15,base=2)
 medSegment = np.linspace(0,100,num=21)
-#medSegment = 50
-ApiBasInd = ApicalBasalInterval
 treeTime = np.logspace(0,7,num=15,base=2)
+numExperiments = 10
 
 spks = [[0 for i in range(len(medSegment))] for j in range(len(treeTime))]
-#trc = spks
-#tme = trc
+#trc = [[[] for i in range(len(medSegment))] for j in range(len(treeTime))]
 
 i = 0
 j = 0
@@ -316,15 +260,13 @@ start = time.time()
 
 #for ApiBasInd in ApicalBasalInterval:
 for medS in medSegment:
-#    print "Running for interval: %s [ms]" % (int(ApiBasInd))
 #    for totalS in totalSyn:
 #    for medS in medSegment:
     if medS==100:
         partApical = 11
     for treeT in treeTime:
-#        print "Running for apical # %s" % (int(numA))
 #        numA = int(totalS*0.4)
-        spks[j][i],_,_ = runSim(L5PC,ApiBasInd,treeT,60,100,partApical,medS,10) #0syn ctrl
+        spks[j][i],_,_ = runSim(L5PC,ApiBasInd,treeT,numBasal,numInh,partApical,medS,numExperiments) #0syn ctrl
         j = j+1
     j = 0
     i = i+1
