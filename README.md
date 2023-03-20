@@ -1,5 +1,6 @@
 # burst
 Code for creation of main results of Burst Control, Leleo &amp; Segev 2021
+https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1009558
 
 Python scripts were used to run simulations of reconstructed L5PC activity with relevant synaptic activation, for burst initiation.
 Some scripts with "cluster" suffix were ran using lab processing cluster. Others were primarily used for data visualisation, 
